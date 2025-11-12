@@ -1,0 +1,35 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Local Netlify folder
+.netlify
+GOOGLE_SHEETS_SETUP.md
+DEPLOY_TO_NETLIFY.md
+MISSING_PRODUCTS.md
+PAYMENT_FLOW_COMPLETE_GUIDE.md
+SkinCare_Products_Inventory - skincare orders.csv
+SkinCare_Products_Inventory - skincare products.csv
+TESTING_GUIDE.md
+ORDER_STATUS_PROTECTION.md
