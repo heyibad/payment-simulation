@@ -25,6 +25,11 @@ dist-ssr
 
 # Local Netlify folder
 .netlify
+
+# Environment variables
+.env
+.env.local
+
 GOOGLE_SHEETS_SETUP.md
 DEPLOY_TO_NETLIFY.md
 MISSING_PRODUCTS.md
