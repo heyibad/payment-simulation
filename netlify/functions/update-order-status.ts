@@ -72,33 +72,66 @@ const handler: Handler = async (event) => {
     }
 
     // Use Google Apps Script Web App as a proxy to update the sheet
-    // You need to create a Google Apps Script and deploy it as a web app
     const GOOGLE_SCRIPT_URL = process.env.GOOGLE_SCRIPT_UPDATE_URL;
     
+    console.log('GOOGLE_SCRIPT_UPDATE_URL:', GOOGLE_SCRIPT_URL ? 'Configured ✓' : 'NOT CONFIGURED ✗');
+    console.log('Attempting to update order:', orderID, 'to status:', status);
+    
     if (GOOGLE_SCRIPT_URL) {
-      const updateResponse = await fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      try {
+        const updatePayload = {
           spreadsheetId: SPREADSHEET_ID,
           sheetName: ORDERS_SHEET_NAME,
           orderID,
           status,
           rowIndex
-        }),
-      });
-      
-      if (updateResponse.ok) {
+        };
+        
+        console.log('Sending to Google Apps Script:', JSON.stringify(updatePayload));
+        
+        const updateResponse = await fetch(GOOGLE_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatePayload),
+        });
+        
+        const responseText = await updateResponse.text();
+        console.log('Google Apps Script response:', responseText);
+        
+        if (updateResponse.ok) {
+          const responseData = JSON.parse(responseText);
+          console.log('✅ Successfully updated order status in Google Sheets');
+          return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify({ 
+              message: 'Order status updated successfully in Google Sheets',
+              orderID,
+              status,
+              scriptResponse: responseData
+            }),
+          };
+        } else {
+          console.error('❌ Google Apps Script returned error:', responseText);
+          throw new Error(`Apps Script failed: ${responseText}`);
+        }
+      } catch (scriptError) {
+        const errorMessage = scriptError instanceof Error ? scriptError.message : 'Unknown error';
+        console.error('❌ Error calling Google Apps Script:', errorMessage);
+        // Don't fail the payment, just log the error
         return {
           statusCode: 200,
           headers,
           body: JSON.stringify({ 
-            message: 'Order status updated successfully in Google Sheets',
+            message: 'Payment processed but status update failed',
             orderID,
-            status
+            status,
+            error: errorMessage
           }),
         };
       }
+    } else {
+      console.warn('⚠️ GOOGLE_SCRIPT_UPDATE_URL not configured');
     }
     
     // Fallback: Log the payment
@@ -116,12 +149,13 @@ const handler: Handler = async (event) => {
         instructions: 'Update status manually in Google Sheets or configure GOOGLE_SCRIPT_UPDATE_URL'
       }),
     };
-  } catch (error: any) {
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to update order status';
     console.error('Error updating order status:', error);
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: error.message || 'Failed to update order status' }),
+      body: JSON.stringify({ error: errorMessage }),
     };
   }
 };
