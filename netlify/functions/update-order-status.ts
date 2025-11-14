@@ -32,16 +32,9 @@ const handler: Handler = async (event) => {
     const clientSecret = process.env.GOOGLE_SHEETS_CLIENT_SECRET;
 
     if (!clientId || !clientSecret) {
-      console.warn('Google OAuth credentials not configured. Order status not updated.');
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({ 
-          message: 'Payment recorded (Google Sheets update skipped - credentials not configured)',
-          orderID,
-          status 
-        }),
-      };
+      console.warn('Google OAuth credentials not configured. Will attempt Apps Script proxy if GOOGLE_SCRIPT_UPDATE_URL is set.');
+    } else {
+      console.log('Google OAuth credentials are present.');
     }
 
     // Note: For full OAuth flow, you'd need a refresh token
