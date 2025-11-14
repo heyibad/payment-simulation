@@ -304,25 +304,55 @@ const Payment = () => {
       // Simulate payment processing
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Update order status to Complete in Google Sheets
-      const updateResponse = await fetch('/.netlify/functions/update-order-status', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          orderID: orderId,
-          status: 'Complete',
-        }),
-      });
+      // Update order status to Complete in Google Sheets (call Netlify function)
+      try {
+        const updateResponse = await fetch('/.netlify/functions/update-order-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderID: orderId,
+            status: 'Complete',
+          }),
+        });
 
-      if (!updateResponse.ok) {
-        console.error('Failed to update order status');
+        // Attempt to parse JSON body for helpful messages
+        let updateJson: any = null;
+        try { updateJson = await updateResponse.json(); } catch (e) { /* ignore */ }
+        console.log('update-order-status response', updateResponse.status, updateJson);
+
+        if (updateResponse.ok) {
+          // If the function returned a warning message (e.g. skipped or pending), show a warning toast
+          if (updateJson?.message && /skipp|pending|failed/i.test(updateJson.message)) {
+            toast({
+              title: "Payment Recorded",
+              description: updateJson.message,
+              variant: "warning",
+            });
+          } else {
+            toast({
+              title: "Payment Successful!",
+              description: "Your order status has been updated to Complete.",
+            });
+          }
+        } else {
+          console.error('Failed to update order status', updateJson);
+          toast({
+            title: "Payment Recorded",
+            description: "Payment processed but status update failed. We'll try to sync it later.",
+            variant: "warning",
+          });
+        }
+      } catch (err) {
+        console.error('Error calling update-order-status function', err);
+        // Network or function error — still treat payment as recorded but warn the user
+        toast({
+          title: "Payment Recorded",
+          description: "Payment processed but failed to update status (network).",
+          variant: "warning",
+        });
       }
 
-      toast({
-        title: "Payment Successful!",
-        description: "Your order status has been updated to Complete.",
-      });
-
+      // Always navigate to confirmation to avoid leaving user stranded
       setTimeout(() => {
         navigate(`/confirmation?orderid=${orderId}&status=success`);
       }, 1000);
