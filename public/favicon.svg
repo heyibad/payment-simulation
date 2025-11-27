@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Easypaisa-inspired green background -->
+  <circle cx="50" cy="50" r="48" fill="#00A651"/>
+  
+  <!-- Stylized "E" for EasyRokra (Easypaisa style) -->
+  <path d="M28 22 L72 22 L72 32 L40 32 L40 44 L68 44 L68 54 L40 54 L40 68 L72 68 L72 78 L28 78 Z" fill="white"/>
+  
+  <!-- Yellow accent dot (like Easypaisa branding) -->
+  <circle cx="78" cy="22" r="10" fill="#FFD700"/>
+</svg>
